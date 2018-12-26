@@ -29,6 +29,17 @@ test:
 	docker-compose up -d db queue
 	docker-compose -f docker-compose.test.yml up --build --force-recreate --exit-code-from unit_test unit_test
 
+newman:
+	docker build . -f Dockerfiles/Dockerfile.newman_test -t newman_test
+	docker run newman_test test/dev.postman_environment.json --global-var "host=dev.bcda.cms.gov" --global-var "scheme=https"
+
+newman-local:
+	docker-compose up -d
+	sleep 30
+	docker-compose -f docker-compose.test.yml up --build --force-recreate --exit-code-from newman_test test/dev.postman_environment.json --global-var "host=dev.bcda.cms.gov"
+	docker-compose -f docker-compose.test.yml up --build --force-recreate --exit-code-from newman_test newman_test
+
+
 load-fixtures:
 	docker-compose up -d db
 	echo "Wait for db to be ready..."

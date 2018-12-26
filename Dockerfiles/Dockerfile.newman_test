@@ -1,0 +1,4 @@
+FROM postman/newman_ubuntu1404
+WORKDIR /go/src/github.com/CMSgov/bcda-app
+COPY . .
+ENTRYPOINT ["newman", "run", "test/BCDA_Tests_Sequential.postman_collection.json", "-e"]
