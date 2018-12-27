@@ -3,4 +3,4 @@ RUN npm install -g newman
 WORKDIR /go/src/github.com/CMSgov/bcda-app
 COPY . .
 RUN newman -v
-ENTRYPOINT ["newman", "run", "test/BCDA_Tests_Sequential.postman_collection.json", "-e"]
+ENTRYPOINT ["newman", "run", "test/BCDA_Sequential3.postman_collection.json", "-e"]
