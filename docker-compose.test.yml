@@ -28,7 +28,5 @@ services:
     build:
       context: .
       dockerfile: Dockerfiles/Dockerfile.newman_test
-    environment:
-        - POSTMAN_ENV=test/dev.postman_environment.json
     volumes:
       - ./test:/go/src/github.com/CMSgov/bcda-app/test

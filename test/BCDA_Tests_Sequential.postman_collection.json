@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "77534917-a94a-4ca8-a3a5-cc25170c681d",
+		"_postman_id": "72cefd45-c711-44f4-88b9-7a500f3e129c",
 		"name": "Beneficiary Claims Data API Tests, Sequential",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -462,248 +462,6 @@
 			"response": []
 		},
 		{
-			"name": "Start EOB export",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "ea1530bd-2243-4f35-8e2c-f4eeb9269c71",
-						"exec": [
-							"pm.test(\"Status code is 202\", function() {",
-							"    pm.response.to.have.status(202);",
-							"});",
-							"",
-							"pm.test(\"Has Content-Location header\", function() {",
-							"    pm.response.to.have.header(\"Content-Location\");",
-							"});",
-							"",
-							"pm.environment.set(\"eobJobUrl\", pm.response.headers.get(\"Content-Location\"));"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/fhir+json",
-						"type": "text"
-					},
-					{
-						"key": "Prefer",
-						"value": "respond-async",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "{{scheme}}://{{host}}/api/v1/ExplanationOfBenefit/$export",
-					"protocol": "{{scheme}}",
-					"host": [
-						"{{host}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"ExplanationOfBenefit",
-						"$export"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get EOB export job status",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "dc6615ac-febe-49d0-98b6-9b4b8614bfcf",
-						"exec": [
-							"pm.test(\"Status code is 202 or 200\", function() {",
-							"     pm.expect(pm.response.code).to.be.oneOf([202,200]);",
-							"});",
-							"",
-							"if (pm.response.code === 202) {",
-							"    pm.test(\"Has X-Progress header\", function() {",
-							"        pm.response.to.have.header(\"X-Progress\", \"In Progress\");",
-							"    });",
-							"} else if (pm.response.code === 200) {",
-							"    const schema = {",
-							"        \"properties\": {",
-							"            \"transactionTime\": {",
-							"                \"type\": \"string\"",
-							"            },",
-							"            \"request\": {",
-							"                \"type\": \"string\"",
-							"            },",
-							"            \"requiresAccessToken\": {",
-							"                \"type\": \"boolean\"",
-							"            },",
-							"            \"output\": {",
-							"                \"type\": \"array\"",
-							"            },",
-							"            \"error\": {",
-							"                \"type\": \"array\"",
-							"            }",
-							"        }",
-							"    };",
-							"    ",
-							"    var respJson = pm.response.json();",
-							"    ",
-							"    pm.test(\"Schema is valid\", function() {",
-							"        pm.expect(tv4.validate(respJson, schema)).to.be.true;",
-							"    });",
-							"    ",
-							"    pm.environment.set(\"eobDataUrl\", respJson.output[0].url);",
-							"}"
-						],
-						"type": "text/javascript"
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"id": "70646143-9885-45c1-94e4-061c2f40295a",
-						"exec": [
-							"const retryDelay = 5000;",
-							"const maxRetries = 10;",
-							"",
-							"var eobJobReq = {",
-							"  url: pm.environment.get(\"eobJobUrl\"),",
-							"  method: \"GET\",",
-							"  header: \"Authorization: Bearer \" + pm.environment.get(\"token\")",
-							"};",
-							"",
-							"function awaitExportJob(retryCount) {",
-							"    pm.sendRequest(eobJobReq, function (err, response) {",
-							"        if (err) {",
-							"            console.error(err);",
-							"        } else if (response.code == 202) {",
-							"            if (retryCount < maxRetries) {",
-							"                console.log(\"ExplanationOfBenefit export still in progress. Retrying...\");",
-							"                setTimeout(function() {",
-							"                    awaitExportJob(++retryCount);",
-							"                }, retryDelay);",
-							"            } else {",
-							"                console.log(\"Retry limit reached for ExplanationOfBenefit job status.\");",
-							"                postman.setNextRequest(null);",
-							"            }",
-							"        } else if (response.code == 200) {",
-							"            console.log(\"EOB export job complete.\");",
-							"        } else {",
-							"            console.error(\"Unexpected response from EOB export job: \" + response.status);",
-							"        }",
-							"    });",
-							"}",
-							"",
-							"awaitExportJob(1);"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "Accept",
-						"type": "text",
-						"value": "application/fhir+json",
-						"disabled": true
-					},
-					{
-						"key": "Prefer",
-						"type": "text",
-						"value": "respond-async",
-						"disabled": true
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "{{eobJobUrl}}",
-					"host": [
-						"{{eobJobUrl}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get EOB export data",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "9cc089de-3f67-4a42-9290-8e32afdbeb97",
-						"exec": [
-							"pm.test(\"Status code is 200\", function() {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"pm.test(\"Body contains data\", function() {",
-							"    pm.expect(pm.response.length > 0)",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "{{eobDataUrl}}",
-					"host": [
-						"{{eobDataUrl}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Start Patient export",
 			"event": [
 				{
@@ -940,6 +698,248 @@
 					"raw": "{{patientDataUrl}}",
 					"host": [
 						"{{patientDataUrl}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Start EOB export",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ea1530bd-2243-4f35-8e2c-f4eeb9269c71",
+						"exec": [
+							"pm.test(\"Status code is 202\", function() {",
+							"    pm.response.to.have.status(202);",
+							"});",
+							"",
+							"pm.test(\"Has Content-Location header\", function() {",
+							"    pm.response.to.have.header(\"Content-Location\");",
+							"});",
+							"",
+							"pm.environment.set(\"eobJobUrl\", pm.response.headers.get(\"Content-Location\"));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/fhir+json",
+						"type": "text"
+					},
+					{
+						"key": "Prefer",
+						"value": "respond-async",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{scheme}}://{{host}}/api/v1/ExplanationOfBenefit/$export",
+					"protocol": "{{scheme}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"ExplanationOfBenefit",
+						"$export"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get EOB export job status",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "dc6615ac-febe-49d0-98b6-9b4b8614bfcf",
+						"exec": [
+							"pm.test(\"Status code is 202 or 200\", function() {",
+							"     pm.expect(pm.response.code).to.be.oneOf([202,200]);",
+							"});",
+							"",
+							"if (pm.response.code === 202) {",
+							"    pm.test(\"Has X-Progress header\", function() {",
+							"        pm.response.to.have.header(\"X-Progress\", \"In Progress\");",
+							"    });",
+							"} else if (pm.response.code === 200) {",
+							"    const schema = {",
+							"        \"properties\": {",
+							"            \"transactionTime\": {",
+							"                \"type\": \"string\"",
+							"            },",
+							"            \"request\": {",
+							"                \"type\": \"string\"",
+							"            },",
+							"            \"requiresAccessToken\": {",
+							"                \"type\": \"boolean\"",
+							"            },",
+							"            \"output\": {",
+							"                \"type\": \"array\"",
+							"            },",
+							"            \"error\": {",
+							"                \"type\": \"array\"",
+							"            }",
+							"        }",
+							"    };",
+							"    ",
+							"    var respJson = pm.response.json();",
+							"    ",
+							"    pm.test(\"Schema is valid\", function() {",
+							"        pm.expect(tv4.validate(respJson, schema)).to.be.true;",
+							"    });",
+							"    ",
+							"    pm.environment.set(\"eobDataUrl\", respJson.output[0].url);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "70646143-9885-45c1-94e4-061c2f40295a",
+						"exec": [
+							"const retryDelay = 5000;",
+							"const maxRetries = 10;",
+							"",
+							"var eobJobReq = {",
+							"  url: pm.environment.get(\"eobJobUrl\"),",
+							"  method: \"GET\",",
+							"  header: \"Authorization: Bearer \" + pm.environment.get(\"token\")",
+							"};",
+							"",
+							"function awaitExportJob(retryCount) {",
+							"    pm.sendRequest(eobJobReq, function (err, response) {",
+							"        if (err) {",
+							"            console.error(err);",
+							"        } else if (response.code == 202) {",
+							"            if (retryCount < maxRetries) {",
+							"                console.log(\"ExplanationOfBenefit export still in progress. Retrying...\");",
+							"                setTimeout(function() {",
+							"                    awaitExportJob(++retryCount);",
+							"                }, retryDelay);",
+							"            } else {",
+							"                console.log(\"Retry limit reached for ExplanationOfBenefit job status.\");",
+							"                postman.setNextRequest(null);",
+							"            }",
+							"        } else if (response.code == 200) {",
+							"            console.log(\"EOB export job complete.\");",
+							"        } else {",
+							"            console.error(\"Unexpected response from EOB export job: \" + response.status);",
+							"        }",
+							"    });",
+							"}",
+							"",
+							"awaitExportJob(1);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/fhir+json",
+						"disabled": true
+					},
+					{
+						"key": "Prefer",
+						"type": "text",
+						"value": "respond-async",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{eobJobUrl}}",
+					"host": [
+						"{{eobJobUrl}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get EOB export data",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9cc089de-3f67-4a42-9290-8e32afdbeb97",
+						"exec": [
+							"pm.test(\"Status code is 200\", function() {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Body contains data\", function() {",
+							"    pm.expect(pm.response.length > 0)",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{eobDataUrl}}",
+					"host": [
+						"{{eobDataUrl}}"
 					]
 				}
 			},
