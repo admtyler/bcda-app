@@ -17,6 +17,11 @@ func NewAPIRouter() http.Handler {
 	r := chi.NewRouter()
 	m := monitoring.GetMonitor()
 	r.Use(auth.ParseToken, logging.NewStructuredLogger(), ConnectionClose)
+
+	// TODO: serve up the static BCDA intro/info page
+
+	if os.Getenv("ENABLE_API_ENDPOINTS") == "true" {
+
 	// Serve up the swagger ui folder
 	FileServer(r, "/api/v1/swagger", http.Dir("./swaggerui"))
 	r.Get(m.WrapHandler("/", func(w http.ResponseWriter, r *http.Request) {
@@ -39,6 +44,7 @@ func NewAPIRouter() http.Handler {
 	})
 	r.Get(m.WrapHandler("/_version", getVersion))
 	r.Get(m.WrapHandler("/_health", healthCheck))
+	}
 	return r
 }
 
