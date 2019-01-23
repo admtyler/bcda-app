@@ -42,9 +42,12 @@ func NewAPIRouter() http.Handler {
 			r.Get(m.WrapHandler("/token", getToken))
 		}
 	})
+        }
+    
+        // Note: we want to serve up /_version and /_health no matter what
 	r.Get(m.WrapHandler("/_version", getVersion))
 	r.Get(m.WrapHandler("/_health", healthCheck))
-	}
+	
 	return r
 }
 

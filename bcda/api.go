@@ -482,6 +482,8 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
+
+	// TODO: perform health check on static page
 }
 
 func readTokenClaims(r *http.Request) (jwt.MapClaims, error) {
