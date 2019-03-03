@@ -189,8 +189,8 @@ func (p AlphaAuthPlugin) RequestAccessToken(creds Credentials, ttl int) (Token, 
 	return token, nil
 }
 
-func (p AlphaAuthPlugin) RevokeAccessToken(tokenString string) error {
-	t, err := p.DecodeJWT(tokenString)
+func (p AlphaAuthPlugin) RevokeAccessToken(creds Credentials) error {
+	t, err := p.DecodeJWT(creds.Token.TokenString)
 	if err != nil {
 		return err
 	}

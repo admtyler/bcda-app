@@ -95,10 +95,15 @@ func (s *OktaAuthPluginTestSuite) TestRequestAccessToken() {
 	assert.IsType(s.T(), Token{}, t)
 	assert.Nil(s.T(), err)
 }
-
 func (s *OktaAuthPluginTestSuite) TestOktaRevokeAccessToken() {
-	err := s.o.RevokeAccessToken("")
-	assert.Equal(s.T(), "not yet implemented", err.Error())
+	fakeCreds := Credentials{ClientID: "not_an_id", ClientSecret: "not_a_secret", Token: Token{TokenString: "not_a_token"}}
+	emptyCreds := Credentials{}
+
+	err := s.o.RevokeAccessToken(emptyCreds)
+	assert.Error(s.T(), err)
+
+	err = s.o.RevokeAccessToken(fakeCreds)
+	assert.NoError(s.T(), err)
 }
 
 func (s *OktaAuthPluginTestSuite) TestValidateJWT() {

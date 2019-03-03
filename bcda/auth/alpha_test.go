@@ -24,9 +24,16 @@ type AlphaAuthPluginTestSuite struct {
 }
 
 func (s *AlphaAuthPluginTestSuite) SetupSuite() {
+	originalAuthProvider = auth.GetProviderName()
+	auth.SetProvider("alpha")
+
 	models.InitializeGormModels()
 	auth.InitializeGormModels()
 	s.SetupAuthBackend()
+}
+
+func (s *AlphaAuthPluginTestSuite) TearDownSuite() {
+	auth.SetProvider(originalAuthProvider)
 }
 
 func (s *AlphaAuthPluginTestSuite) SetupTest() {
@@ -34,6 +41,7 @@ func (s *AlphaAuthPluginTestSuite) SetupTest() {
 }
 
 var connections = make(map[string]*gorm.DB)
+var originalAuthProvider string
 
 func (s *AlphaAuthPluginTestSuite) BeforeTest(suiteName, testName string) {
 	connections[testName] = database.GetGORMDbConnection()
@@ -173,6 +181,7 @@ func (s *AlphaAuthPluginTestSuite) TestRevokeAccessToken() {
 	db := connections["TestRevokeAccessToken"]
 
 	const userID, acoID = "EFE6E69A-CD6B-4335-A2F2-4DBEDCCD3E73", "DBBD1CE1-AE24-435C-807D-ED45953077D3"
+	creds := auth.Credentials{ClientID: userID}
 	assert := assert.New(s.T())
 
 	// Good Revoke test
@@ -181,23 +190,27 @@ func (s *AlphaAuthPluginTestSuite) TestRevokeAccessToken() {
 		assert.FailNow("no access token for %s because %s", acoID, err.Error())
 	}
 
-	err = s.p.RevokeAccessToken(userID)
+	err = s.p.RevokeAccessToken(creds)
 	assert.NotNil(err)
 
-	err = s.p.RevokeAccessToken(token.TokenString)
+	creds = auth.Credentials{Token: token}
+	err = s.p.RevokeAccessToken(creds)
 	assert.Nil(err)
 	var tokenFromDB jwt.Token
 	assert.False(db.Find(&tokenFromDB, "UUID = ? AND active = false", token.UUID).RecordNotFound())
 
 	// Revoke the token again, you can't
-	err = s.p.RevokeAccessToken(token.TokenString)
+	err = s.p.RevokeAccessToken(creds)
 	assert.NotNil(err)
 
 	// Revoke a token that doesn't exist
 	tokenString, _ := s.AuthBackend.GenerateTokenString(uuid.NewRandom().String(), acoID)
-	err = s.p.RevokeAccessToken(tokenString)
+	creds = auth.Credentials{Token: auth.Token{TokenString: tokenString}}
+	err = s.p.RevokeAccessToken(creds)
 	assert.NotNil(err)
 	assert.True(gorm.IsRecordNotFoundError(err))
+
+	auth.SetProvider(originalAuthProvider)
 }
 
 func (s *AlphaAuthPluginTestSuite) TestValidateAccessToken() {

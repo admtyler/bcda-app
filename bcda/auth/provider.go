@@ -78,7 +78,7 @@ type Provider interface {
 	RequestAccessToken(creds Credentials, ttl int) (Token, error)
 
 	// Revoke a specific access token identified in a base64 encoded token string
-	RevokeAccessToken(tokenString string) error
+	RevokeAccessToken(creds Credentials) error
 
 	// Assert that a base64 encoded token string is valid for accessing the BCDA API
 	ValidateJWT(tokenString string) error

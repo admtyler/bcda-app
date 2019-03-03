@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -207,6 +208,39 @@ func (oc *OktaClient) RequestAccessToken(creds Credentials) (OktaToken, error) {
 	}
 
 	return ot, nil
+}
+
+func (oc *OktaClient) RevokeAccessToken(creds Credentials, token string) error {
+	requestID := uuid.NewRandom()
+
+	payload := strings.NewReader(fmt.Sprintf("token=%s&token_type_hint=access_token", token))
+
+	tokenURL := fmt.Sprintf("%s/oauth2/v1/revoke", oktaBaseUrl)
+	req, err := http.NewRequest("POST", tokenURL, payload)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("cache-control", "no-cache")
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.SetBasicAuth(creds.ClientID, creds.ClientSecret)
+
+	logRequest(requestID).Print("revoking Okta access token")
+	resp, err := client().Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+	logResponse(resp.StatusCode, requestID).Print()
+
+	if resp.StatusCode >= 400 {
+		err = errors.New(resp.Status)
+		logError(err, requestID).Info("unable to revoke access token")
+		return err
+	}
+	return nil
 }
 
 type Policy struct {

@@ -24,6 +24,9 @@ type OktaBackend interface {
 	// Gets a session token from Okta
 	RequestAccessToken(creds client.Credentials) (client.OktaToken, error)
 
+	// Revokes a session token from Okta
+	RevokeAccessToken(creds client.Credentials, token string) error
+
 	// Renews client secret for an okta client
 	GenerateNewClientSecret(string) (string, error)
 }
@@ -94,8 +97,22 @@ func (o OktaAuthPlugin) RequestAccessToken(creds Credentials, ttl int) (Token, e
 	return Token{TokenString: ot.AccessToken}, nil
 }
 
-func (o OktaAuthPlugin) RevokeAccessToken(tokenString string) error {
-	return errors.New("not yet implemented")
+func (o OktaAuthPlugin) RevokeAccessToken(creds Credentials) error {
+	if creds.ClientID == "" {
+		return fmt.Errorf("client ID required")
+	}
+
+	if creds.ClientSecret == "" {
+		return fmt.Errorf("client secret required")
+	}
+
+	if creds.Token.TokenString == "" {
+		return fmt.Errorf("client ID required")
+	}
+
+	clientCreds := client.Credentials{ClientID: creds.ClientID, ClientSecret: creds.ClientSecret}
+
+	return o.backend.RevokeAccessToken(clientCreds, creds.Token.TokenString)
 }
 
 func (o OktaAuthPlugin) ValidateJWT(tokenString string) error {

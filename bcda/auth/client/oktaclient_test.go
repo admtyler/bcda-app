@@ -90,6 +90,36 @@ func (s *OTestSuite) TestRequestAccessToken() {
 	assert.NotNil(s.T(), err)
 }
 
+func (s *OTestSuite) TestRevokeAccessToken() {
+	clientID := os.Getenv("OKTA_CLIENT_ID")
+	clientSecret := os.Getenv("OKTA_CLIENT_SECRET")
+
+	assert.NotEmpty(s.T(), clientID, "Test requires OKTA_CLIENT_ID")
+	assert.NotEmpty(s.T(), clientSecret, "Test requires OKTA_CLIENT_SECRET")
+
+	creds := Credentials{ClientID: clientID, ClientSecret: clientSecret}
+	t, err := s.oc.RequestAccessToken(creds)
+	assert.Nil(s.T(), err, "Must be able to get new token to revoke")
+
+	// Success!
+	err = s.oc.RevokeAccessToken(creds, t.AccessToken)
+	assert.Nil(s.T(), err)
+
+	// No difference in response is seen for second revokation
+	err = s.oc.RevokeAccessToken(creds, t.AccessToken)
+	assert.Nil(s.T(), err)
+
+	// Surprisingly, an invalid token does not generate an error either
+	badTokenString := "not_a_token"
+	err = s.oc.RevokeAccessToken(creds, badTokenString)
+	assert.Nil(s.T(), err)
+
+	// Bad credentials fail
+	badCreds := Credentials{ClientID: "not_a_client_id", ClientSecret: "not_a_client_secret"}
+	err = s.oc.RevokeAccessToken(badCreds, t.AccessToken)
+	assert.NotNil(s.T(), err)
+}
+
 func (s *OTestSuite) TestGenerateNewClientSecret() {
 	validClientID := "0oaj4590j9B5uh8rC0h7"
 	newSecret, err := s.oc.GenerateNewClientSecret(validClientID)

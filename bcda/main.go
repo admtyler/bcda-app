@@ -82,7 +82,7 @@ func setUpApp() *cli.App {
 	app.Name = Name
 	app.Usage = Usage
 	app.Version = version
-	var acoName, acoID, userName, userEmail, userID, accessToken, ttl, threshold, acoSize, filePath string
+	var acoName, acoID, userName, userEmail, userID, tokenID, tokenSecret, accessToken, ttl, threshold, acoSize, filePath string
 	app.Commands = []cli.Command{
 		{
 			Name:  "start-api",
@@ -221,10 +221,20 @@ func setUpApp() *cli.App {
 					Name:        "access-token",
 					Usage:       "Access token",
 					Destination: &accessToken,
+				}, cli.StringFlag{
+					Name:        "id",
+					Usage:       "Client ID (not required for Alpha tokens)",
+					Destination: &tokenID,
+				}, cli.StringFlag{
+					Name:        "secret",
+					Usage:       "Client secret (not required for Alpha tokens)",
+					Destination: &tokenSecret,
 				},
 			},
 			Action: func(c *cli.Context) error {
-				err := revokeAccessToken(accessToken)
+				token := auth.Token{TokenString: accessToken}
+				creds := auth.Credentials{ClientID: tokenID, ClientSecret: tokenSecret, Token: token}
+				err := revokeAccessToken(creds)
 				if err != nil {
 					return err
 				}
@@ -423,12 +433,29 @@ func createAccessToken(userID string) (string, error) {
 	return token.TokenString, nil
 }
 
-func revokeAccessToken(accessToken string) error {
-	if accessToken == "" {
-		return errors.New("Access token (--access-token) must be provided")
+func revokeAccessToken(creds auth.Credentials) error {
+	errMsgs := []string{}
+	a := auth.GetProvider()
+
+	if creds.Token.TokenString == "" {
+		errMsgs = append(errMsgs, "Access token (--access-token) must be provided")
 	}
 
-	return auth.GetProvider().RevokeAccessToken(accessToken)
+	switch a.(type) {
+	case auth.OktaAuthPlugin:
+		if creds.ClientID == "" {
+			errMsgs = append(errMsgs, "Client ID (--id) must be provided")
+		}
+		if creds.ClientSecret == "" {
+			errMsgs = append(errMsgs, "Secret (--secret) must be provided")
+		}
+	}
+
+	if len(errMsgs) > 0 {
+		return errors.New(strings.Join(errMsgs, "\n"))
+	}
+
+	return a.RevokeAccessToken(creds)
 }
 
 func validateAlphaTokenInputs(ttl, acoSize string) (int, error) {

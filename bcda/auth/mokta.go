@@ -84,6 +84,10 @@ func (m *Mokta) RequestAccessToken(creds client.Credentials) (client.OktaToken, 
 	}, nil
 }
 
+func (m *Mokta) RevokeAccessToken(_ client.Credentials, _ string) error {
+	return nil
+}
+
 func (m *Mokta) GenerateNewClientSecret(clientID string) (string, error) {
 	if len(clientID) != 20 {
 		return "", errors.New("404 Not Found")
