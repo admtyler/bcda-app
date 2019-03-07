@@ -107,7 +107,7 @@ func (o OktaAuthPlugin) RevokeAccessToken(creds Credentials) error {
 	}
 
 	if creds.Token.TokenString == "" {
-		return fmt.Errorf("client ID required")
+		return fmt.Errorf("token required")
 	}
 
 	clientCreds := client.Credentials{ClientID: creds.ClientID, ClientSecret: creds.ClientSecret}
