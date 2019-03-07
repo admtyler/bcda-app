@@ -77,13 +77,12 @@ func (s *OTestSuite) TestAddClientApplication() {
 }
 
 func (s *OTestSuite) TestRequestAccessToken() {
-	clientID := os.Getenv("OKTA_CLIENT_ID")
-	clientSecret := os.Getenv("OKTA_CLIENT_SECRET")
+	rci := randomClientId(6)
+	clientID, secret, _, _ := s.oc.AddClientApplication(rci)
+	defer s.oc.DeactivateApplication(clientID)
+	defer s.oc.RemoveClientApplication(clientID)
 
-	assert.NotEmpty(s.T(), clientID, "Test requires OKTA_CLIENT_ID")
-	assert.NotEmpty(s.T(), clientSecret, "Test requires OKTA_CLIENT_SECRET")
-
-	t, err := s.oc.RequestAccessToken(Credentials{ClientID: clientID, ClientSecret: clientSecret})
+	t, err := s.oc.RequestAccessToken(Credentials{ClientID: clientID, ClientSecret: secret})
 	assert.IsType(s.T(), OktaToken{}, t)
 	assert.Nil(s.T(), err)
 
@@ -93,13 +92,12 @@ func (s *OTestSuite) TestRequestAccessToken() {
 }
 
 func (s *OTestSuite) TestRevokeAccessToken() {
-	clientID := os.Getenv("OKTA_CLIENT_ID")
-	clientSecret := os.Getenv("OKTA_CLIENT_SECRET")
+	rci := randomClientId(6)
+	clientID, secret, _, _ := s.oc.AddClientApplication(rci)
+	defer s.oc.DeactivateApplication(clientID)
+	defer s.oc.RemoveClientApplication(clientID)
 
-	assert.NotEmpty(s.T(), clientID, "Test requires OKTA_CLIENT_ID")
-	assert.NotEmpty(s.T(), clientSecret, "Test requires OKTA_CLIENT_SECRET")
-
-	creds := Credentials{ClientID: clientID, ClientSecret: clientSecret}
+	creds := Credentials{ClientID: clientID, ClientSecret: secret}
 	t, err := s.oc.RequestAccessToken(creds)
 	assert.Nil(s.T(), err, "Must be able to get new token to revoke")
 
