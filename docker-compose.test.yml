@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfiles/Dockerfile.tests
+    extra_hosts:
+      sandbox.bcda.cms.gov: ${SANDBOX_IP}
     environment:
       - DB=postgresql://postgres:toor@db:5432
       - QUEUE_DATABASE_URL=postgresql://postgres:toor@queue:5432/bcda_queue
