@@ -30,10 +30,10 @@ func InitializeGormModels() *gorm.DB {
 type Token struct {
 	gorm.Model
 	// even though gorm.Model has an `id` field declared as the primary key, the following definition overrides that
-	UUID        uuid.UUID   `gorm:"primary_key" json:"uuid"` // uuid (primary key)
+  UUID        uuid.UUID   `gorm:"type:uuid;primary_key" json:"uuid"` // uuid (primary key)
 	User        models.User `gorm:"foreignkey:UserID;association_foreignkey:UUID"`
-	UserID      uuid.UUID   `json:"user_id"`
-	Value       string      `gorm:"type:varchar(511); unique" json:"value"`       // Deprecated: When can we drop Value without hurting existing alpha tokens?
+  UserID      uuid.UUID   `gorm:"type:uuid" json:"user_id"`
+	Value       string      `gorm:"type:varchar(511)" json:"value"`       // Deprecated: When can we drop Value without hurting existing alpha tokens?
 	Active      bool        `json:"active"`                                       // active
 	ACO         models.ACO  `gorm:"foreignkey:ACOID;association_foreignkey:UUID"` // ACO needed here because user can belong to multiple ACOs
 	ACOID       uuid.UUID   `gorm:"type:uuid" json:"aco_id"`

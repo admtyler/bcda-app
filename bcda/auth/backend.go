@@ -20,7 +20,8 @@ func init() {
 	log.SetFormatter(&log.JSONFormatter{})
 }
 
-// Hash is a cryptographically hashed string
+// Hash is a cryptographically hashed string, used in non-production mock-ups of our authentication system.  For a
+// production system we would use sal
 type Hash string
 
 // NewHash creates a hashed string from a source string, return it as a new Hash value.
@@ -95,4 +96,3 @@ func getPublicKey() *rsa.PublicKey {
 func (backend *AlphaBackend) SignJwtToken(token jwt.Token) (string, error) {
 	return token.SignedString(backend.PrivateKey)
 }
-

@@ -17,7 +17,7 @@ echo "DB_HOST_URL is $DB_HOST_URL"
 echo "TEST_DB_URL is $TEST_DB_URL"
 usql $DB_HOST_URL -c 'drop database if exists bcda_test;'
 usql $DB_HOST_URL -c 'create database bcda_test;'
-usql $TEST_DB_URL -f db/api.sql
+DATABASE_URL=$TEST_DB_URL QUEUE_DATABASE_URL=$TEST_DB_URL gotestsum -- ./bcda/init
 usql $TEST_DB_URL -f db/fixtures.sql
 usql $TEST_DB_URL -f db/test_synthetic_beneficiaries.sql
 usql $TEST_DB_URL -f db/worker.sql
