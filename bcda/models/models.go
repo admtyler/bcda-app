@@ -59,7 +59,7 @@ type JobKey struct {
 // ACO-Beneficiary relationship models based on https://github.com/jinzhu/gorm/issues/719#issuecomment-168485989
 type ACO struct {
 	gorm.Model
-	UUID             uuid.UUID `gorm:"primary_key;type:uuid" json:"uuid"`
+	UUID             uuid.UUID `gorm:"unique;primary_key;type:uuid" json:"uuid"`
 	CMSID            *string   `gorm:"unique;type:char(5)" json:"cms_id"`
 	Name             string    `json:"name"`
 	ClientID         string    `json:"client_id"`
@@ -123,8 +123,8 @@ func CreateACO(name string, cmsID *string) (uuid.UUID, error) {
 type User struct {
 	gorm.Model
 	UUID  uuid.UUID `gorm:"primary_key; type:uuid" json:"uuid"` // uuid
-	Name  string    `json:"name"`                                   // name
-	Email string    `json:"email"`                                  // email
+	Name  string    `json:"name"`                               // name
+	Email string    `json:"email"`                              // email
 	ACO   ACO       `gorm:"foreignkey:ACOID;association_foreignkey:UUID"`
 	ACOID uuid.UUID `gorm:"type:uuid" json:"aco_id"` // aco_id
 }
